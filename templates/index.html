@@ -1,0 +1,49 @@
+{% extends "template.html" %}
+{% block title %}Annons Lista{% endblock %}
+{% block content %}
+    <main>
+        <h1>Annonser</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>Titel</th>
+                    <th>Pris</th>
+                    <th>Rabattpris</th>
+                    <th>På rea</th>
+                    <th></th>
+                    <th></th>
+
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr>
+                        <td>{{ product.title }}</td>
+                        <td>{{ product.price }}</td>
+                        <td>{{ product.sale_price }}</td>
+                        <td>
+                            {% if product.on_sale %}
+                                Ja
+                            {% else %}
+                                Nej
+                            {% endif %}
+
+                        </td>
+                        <td class="edit-btn">
+                            <form method="GET" action="/edit/{{ product.id }}">
+                                <button type="submit">Ändra</button>
+                            </form>
+                        </td>
+                        <td class="delete-btn">
+                            <form method="POST" action="/delete/{{ product.id }}">
+                                <button type="submit">Ta bort</button>
+                            </form>
+                        </td>
+                        
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a id="add_product_button" href="/add">Add Product</a>
+    </main>
+{% endblock %}

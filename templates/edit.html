@@ -1,0 +1,26 @@
+{% extends 'template.html' %}
+{% block title %}Ändra annons{% endblock %}
+{% block content %}
+    <main>
+        <h1>Ändra annons</h1>
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            <label for="title">Titel:</label>
+            <input type="text" id="title" name="title" value="{{ product.title }}" required><br>
+            <label for="price">Pris:</label>
+            <input type="text" id="price" name="price" value="{{ product.price }}" pattern="^\d+(\.\d{1,2})?$" title="Please enter a valid price (e.g. 12.34)" required><br>
+            <label for="sale_price">Reapris:</label>
+            <input type="text" id="sale_price" name="sale_price" value="{{ product.sale_price }}"><br>
+            <label for="on_sale">På Rea:</label>
+            <input type="checkbox" id="on_sale" name="on_sale" {% if product.on_sale %}checked{% endif %}><br><br>
+            <label for="image">Bild:</label>
+            {% if product.image %}
+                <img src="/static/uploads/{{ product.image }}" alt="Bild på {{ product.title }}" width="100"><br>
+                {% endif %}
+            <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png"><br>
+            <input type="submit" value="Save">
+        </form>
+    </main>
+{% endblock %}

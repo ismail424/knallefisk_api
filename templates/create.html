@@ -1,0 +1,26 @@
+{% extends "template.html" %}
+{% block title %}Skapa annons{% endblock %}
+{% block content %}
+    <main>
+        <h1>Skapa annons</h1>
+        {% if error %}
+            <p style="color: red;">{{ error }}</p>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data">
+            <label for="title">Titel:</label>
+            <input type="text" id="title" name="title" required><br>
+            <label for="price">Pris:</label>
+            <input type="number" id="price" name="price" min="0" max="1000" step="0.01" required>
+            <label for="sale_price">Reapris:</label>
+            <input type="number" id="sale_price" name="sale_price" min="0" max="1000" step="0.01"><br>
+            <div class="on_sale"> 
+                <label for="on_sale">På Rea:</label>
+                <input type="checkbox" id="on_sale" name="on_sale"><br>
+            </div>
+            <label for="image">Bild:</label>
+            <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png"><br>
+            <input type="submit" value="Skapa">
+        </form>
+    </main>
+{% endblock %}
+

@@ -1,0 +1,11 @@
+# Ignore environment files
+.env
+
+# Ignore Flask-specific files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyi
+*.egg-info/
+*.egg

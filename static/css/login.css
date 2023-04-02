@@ -1,0 +1,46 @@
+/* Set font family and size for the entire page */
+body {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Style the login form */
+form {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    margin: 50px auto;
+    padding: 20px;
+    width: 300px;
+    box-sizing: border-box; /* ensure padding is included in width */
+}
+
+h1 {
+    font-size: 28px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    margin-top: 0;
+}
+
+input[type="text"],
+input[type="password"] {
+    display: block;
+    width: calc(100% - 10px); /* subtract padding from total width */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    box-sizing: border-box; /* ensure padding is included in width */
+}
+
+input[type="submit"] {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 10px;
+}
+
+input[type="submit"]:hover {
+    background-color: #3e8e41;
+}
