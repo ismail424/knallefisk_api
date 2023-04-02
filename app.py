@@ -1,4 +1,5 @@
 from flask import Flask, flash, g, session, render_template, redirect, request
+from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 from model import Product
@@ -11,6 +12,7 @@ UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
 DATABASE = "database.db"
 
 app = Flask(__name__)
+CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 load_dotenv()
