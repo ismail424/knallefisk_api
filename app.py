@@ -163,7 +163,7 @@ def login():
             return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html")
 
-@app.route("/logout", methods=["POST"])
+@app.route("/logout", methods=["GET", "POST"])
 def logout():
     session.pop("username", None)
     return redirect("/")
