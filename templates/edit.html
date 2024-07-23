@@ -1,26 +1,91 @@
 {% extends 'template.html' %}
 {% block title %}Ändra annons{% endblock %}
 {% block content %}
-    <main>
-        <h1>Ändra annons</h1>
-        {% if error %}
-            <p style="color: red;">{{ error }}</p>
-        {% endif %}
-        <form method="POST" enctype="multipart/form-data">
-            <label for="title">Titel:</label>
-            <input type="text" id="title" name="title" value="{{ product.title }}" required><br>
-            <label for="price">Pris:</label>
-            <input type="text" id="price" name="price" value="{{ product.price }}" pattern="^\d+(\.\d{1,2})?$" title="Please enter a valid price (e.g. 12.34)" required><br>
-            <label for="sale_price">Reapris:</label>
-            <input type="text" id="sale_price" name="sale_price" value="{{ product.sale_price }}"><br>
-            <label for="on_sale">På Rea:</label>
-            <input type="checkbox" id="on_sale" name="on_sale" {% if product.on_sale %}checked{% endif %}><br><br>
-            <label for="image">Bild:</label>
-            {% if product.image %}
-                <img src="/static/uploads/{{ product.image }}" alt="Bild på {{ product.title }}" width="100"><br>
-                {% endif %}
-            <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png"><br>
-            <input type="submit" value="Save">
-        </form>
-    </main>
+<h1>Ändra annons</h1>
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<form method="POST" enctype="multipart/form-data" onsubmit="return validateForm()">
+    <div class="form-group">
+        <label for="title">Titel:</label>
+        <input type="text" id="title" name="title" value="{{ product.title }}" required>
+    </div>
+    <div class="form-group">
+        <label for="price">Pris:</label>
+        <input type="number" id="price" name="price" value="{{ product.price }}" min="0" max="1000" step="0.01" required>
+    </div>
+    <div class="form-group checkbox">
+        <label for="on_sale">
+            <input type="checkbox" id="on_sale" name="on_sale" onclick="toggleSalePrice()" {% if product.on_sale %}checked{% endif %}>
+            På Rea
+        </label>
+    </div>
+    <div class="form-group" id="sale_price_group" style="display: {% if product.on_sale %}block{% else %}none{% endif %};">
+        <label for="sale_price">Reapris:</label>
+        <input type="number" id="sale_price" name="sale_price" value="{{ product.sale_price }}" min="0" max="1000" step="0.01">
+    </div>
+    <div class="form-group checkbox">
+        <label for="is_visible">
+            <input type="checkbox" id="is_visible" name="is_visible" {% if product.is_visible %}checked{% endif %}>
+            Visible
+        </label>
+    </div>
+    <div class="form-group">
+        <label for="image">Bild:</label>
+        <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png">
+    </div>
+    {% if product.image %}
+    <div class="current-image">
+        <img src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="Bild på {{ product.title }}" width="100">
+        <p>Nuvarande bild</p>
+    </div>
+    {% endif %}
+    <button type="submit" class="button">Uppdatera annons</button>
+</form>
+
+<script>
+    function toggleSalePrice() {
+        var salePriceGroup = document.getElementById('sale_price_group');
+        var onSaleCheckbox = document.getElementById('on_sale');
+        var salePriceInput = document.getElementById('sale_price');
+        if (onSaleCheckbox.checked) {
+            salePriceGroup.style.display = 'block';
+            salePriceInput.required = true;
+        } else {
+            salePriceGroup.style.display = 'none';
+            salePriceInput.required = false;
+        }
+    }
+
+    function validateForm() {
+        var title = document.getElementById('title').value;
+        var price = document.getElementById('price').value;
+        var image = document.getElementById('image').value;
+        var onSale = document.getElementById('on_sale').checked;
+        var salePrice = document.getElementById('sale_price').value;
+
+        if (!title) {
+            alert("Titel är obligatoriskt.");
+            return false;
+        }
+        if (!price) {
+            alert("Pris är obligatoriskt.");
+            return false;
+        }
+        if (!image && !document.querySelector('.current-image')) {
+            alert("Bild är obligatoriskt.");
+            return false;
+        }
+        if (onSale && !salePrice) {
+            alert("Reapris är obligatoriskt när På Rea är valt.");
+            return false;
+        }
+        return true;
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        toggleSalePrice();
+    });
+</script>
+
 {% endblock %}

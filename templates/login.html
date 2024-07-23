@@ -2,22 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Knallefisk API Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
-    <form method="POST">
-        <h1>Login</h1>
-        <label>Username:</label>
-        <input type="text" name="username"><br>
-        <label>Password:</label>
-        <input type="password" name="password"><br>
-        <input type="submit" value="Login">
-        {% if error %}
-            <p style="color: red; text-align: center; margin-top: 10px;">{{ error }}</p>
-        {% endif %}
-    </form>
+    <div class="login-container">
+        <form class="login-form" method="POST" action="{{ url_for('login') }}">
+            <h1>Login</h1>
+            <div class="input-group">
+                <input type="text" id="username" name="username" required>
+                <label for="username">Username</label>
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" name="password" required>
+                <label for="password">Password</label>
+            </div>
+            <div class="remember-password" style="display: none;"
+                <input type="checkbox" id="remember" name="remember" checked>
+                <label for="remember">Remember Password</label>
+            </div>
+            <button type="submit">Login</button>
+            {% if error %}
+            <div class="error-message">{{ error }}</div>
+            {% endif %}
+        </form>
+    </div>
 </body>
 </html>

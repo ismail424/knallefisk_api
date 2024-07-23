@@ -3,3 +3,4 @@ Pillow==9.5.0
 python-dotenv==1.0.0
 Werkzeug==2.2.2
 flask-cors
+flask_session

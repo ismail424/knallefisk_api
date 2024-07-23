@@ -1,49 +1,38 @@
 {% extends "template.html" %}
-{% block title %}Annons Lista{% endblock %}
+{% block title %}Annonslista{% endblock %}
 {% block content %}
-    <main>
-        <h1>Annonser</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>Titel</th>
-                    <th>Pris</th>
-                    <th>Rabattpris</th>
-                    <th>På rea</th>
-                    <th></th>
-                    <th></th>
-
-                </tr>
-            </thead>
-            <tbody>
-                {% for product in products %}
-                    <tr>
-                        <td>{{ product.title }}</td>
-                        <td>{{ product.price }}</td>
-                        <td>{{ product.sale_price }}</td>
-                        <td>
-                            {% if product.on_sale %}
-                                Ja
-                            {% else %}
-                                Nej
-                            {% endif %}
-
-                        </td>
-                        <td class="edit-btn">
-                            <form method="GET" action="/edit/{{ product.id }}">
-                                <button type="submit">Ändra</button>
-                            </form>
-                        </td>
-                        <td class="delete-btn">
-                            <form method="POST" action="/delete/{{ product.id }}">
-                                <button type="submit">Ta bort</button>
-                            </form>
-                        </td>
-                        
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <a id="add_product_button" href="/add">Add Product</a>
-    </main>
+<h1>Annonser</h1>
+<div class="product-list">
+    {% for product in products %}
+    <div class="product-card">
+        <img src="{{ url_for('static', filename='uploads/' ~ product.image) }}" alt="Bild på {{ product.title }}" class="product-image">
+        <h2 class="product-title">{{ product.title }}</h2>
+        <div class="product-description">
+            <p class="product-price">{{ product.price }} kr</p>
+            {% if product.on_sale %}
+            <p class="sale-price">{{ product.sale_price }} kr</p>
+            <span class="sale-badge">Rea</span>
+            {% endif %}
+        </div>
+        {% if product.is_visible %}
+        <span class="visible-badge">Offentlig</span>
+        {% else %}
+        <span class="draft-badge">Utkast</span>
+        {% endif %}
+        <div class="actions">
+            <a href="/edit/{{ product.id }}" class="button edit-btn">
+                <i class="fas fa-edit"></i> Ändra
+            </a>
+            <form method="POST" action="/delete/{{ product.id }}" class="delete-form">
+                <button type="submit" class="button delete-btn">
+                    <i class="fas fa-trash-alt"></i> Ta bort
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+<a href="/add" class="button add-btn">
+    <i class="fas fa-plus"></i> Lägg till produkt
+</a>
 {% endblock %}

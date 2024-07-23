@@ -1,12 +1,13 @@
 from flask import Flask, flash, g, session, render_template, redirect, request
 from flask_cors import CORS
+from flask_session import Session
 from werkzeug.utils import secure_filename
-from dotenv import load_dotenv
 from model import Product
 from PIL import Image
 import os
 import json
 import sqlite3
+from datetime import timedelta
 
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
 DATABASE = "database.db"
@@ -14,9 +15,14 @@ DATABASE = "database.db"
 app = Flask(__name__)
 CORS(app)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=365)
 
+Session(app)
+
+from dotenv import load_dotenv
 load_dotenv()
-
 
 def get_db():
     db = getattr(g, '_database', None)
@@ -54,31 +60,36 @@ def add():
     if "username" not in session:
         return redirect("/login")
 
-    if request.method == "POST":
-        title = request.form["title"]
-        price = request.form["price"]
-        sale_price = request.form.get("sale_price")
-        on_sale = bool(request.form.get("on_sale"))
-        if "image" in request.files:
-            image = request.files["image"]
-        else:
-            image = None
-            
-        if not title or not price or not image:
-            error = "Title, price, and image are required"
-            return render_template("create.html", error=error)
+    if request.method == 'POST':
+        title = request.form['title']
+        price = request.form['price']
+        sale_price = request.form['sale_price'] if 'on_sale' in request.form else None
+        on_sale = 'on_sale' in request.form
+        is_visible = 'is_visible' in request.form
+        image = request.files['image'] if 'image' in request.files and request.files['image'].filename != "" else None
         
-        if image.filename != "":
+        if image:
             filename = secure_filename(image.filename)
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
             image.save(filepath)
             img = Image.open(filepath)
             img.save(filepath, optimize=True, quality=70)
+            image_filename = filename
+        else:
+            image_filename = None
+
                     
         # Create a new Product object and save it to the database
-        product = Product(title=title, price=price, sale_price=sale_price, on_sale=on_sale, image=filename)
+        new_product = Product(
+            title=title,
+            price=price,
+            sale_price=sale_price,
+            on_sale=on_sale,
+            is_visible=is_visible,
+            image=image_filename
+        )        
         db, cursor = get_db()
-        product.save(db)
+        new_product.save(db)
         
         return redirect("/")
     
@@ -102,45 +113,41 @@ def edit(product_id):
     if "username" not in session:
         return redirect("/login")
 
-    db, cur = get_db()
-    product =  Product.get_by_id(db, product_id)
+    db, cursor = get_db()
+    product = Product.get_by_id(db, product_id)
 
     if not product:
         return "Product not found"
 
-    if request.method == "POST":
-        # Update the product with the new data
-        title = request.form.get("title")
-        price = request.form.get("price")
-        sale_price = request.form.get("sale_price")
-        on_sale = request.form.get("on_sale") == "on"
-
-        image = request.files.get("image")
-        filename = secure_filename(image.filename)
-
-        if filename:
-
-            # Delete the old image
-            old_image_path = os.path.join(app.config["UPLOAD_FOLDER"], product["image"])
-            os.remove(old_image_path)
+    if request.method == 'POST':
+        title = request.form['title']
+        price = request.form['price']
+        sale_price = request.form['sale_price'] if 'on_sale' in request.form else None
+        on_sale = 'on_sale' in request.form
+        is_visible = 'is_visible' in request.form
+        image = request.files['image'] if 'image' in request.files and request.files['image'].filename != "" else None
+        
+        # If a new image is uploaded, delete the old one and save the new one
+        if image:
+            if product['image']:
+                old_image_path = os.path.join(app.config["UPLOAD_FOLDER"], product['image'])
+                if os.path.exists(old_image_path):
+                    os.remove(old_image_path)
             
-            # Save the image to disk
-            image_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            # Save the new image to disk
+            image_path = os.path.join(app.config["UPLOAD_FOLDER"], image.filename)
             image.save(image_path)
-
-            # Update the product with the new image path
-            cur.execute(
-                "UPDATE products SET title = ?, price = ?, sale_price = ?, on_sale = ?, image = ? WHERE id = ?",
-                (title, price, sale_price, on_sale, filename, product_id),
-            )
-            
+            new_image_filename = image.filename
         else:
-            # Update the product without changing the image path
-            cur.execute(
-                "UPDATE products SET title = ?, price = ?, sale_price = ?, on_sale = ? WHERE id = ?",
-                (title, price, sale_price, on_sale, product_id),
-            )
-
+            new_image_filename = product['image']
+        
+        # Update the product with or without changing the image path
+        cur = db.cursor()
+        cur.execute(
+            '''UPDATE products SET title = ?, price = ?, sale_price = ?, on_sale = ?, is_visible = ?, image = ? 
+            WHERE id = ?''',
+            (title, price, sale_price, int(on_sale), int(is_visible), new_image_filename, product_id)
+        )
         db.commit()
 
         return redirect("/")
@@ -148,16 +155,18 @@ def edit(product_id):
     return render_template("edit.html", product=product)
 
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
-        username_env = os.environ.get("USERNAME")
-        password_env = os.environ.get("PASSWORD")
-
-        if username == username_env and password == password_env:
-            session["username"] = username
+        username_env = os.environ.get("APP_USERNAME")
+        password_env = os.environ.get("APP_PASSWORD")
+        # Check if the username and password are correct, ignore case
+        if username.lower() == username_env.lower() and password == password_env:
+            session["username"] = username_env
+            session.permanent = True
             return redirect("/")
         else:
             return render_template("login.html", error="Invalid username or password.")
@@ -175,20 +184,7 @@ def get_all_products():
         db, cur = get_db()
         cur.execute("SELECT * FROM products")
         rows = cur.fetchall()
-
-        products = []
-        for row in rows:
-            product = {
-                "id": row["id"],
-                "title": row["title"],
-                "price": row["price"],
-                "sale_price": row["sale_price"],
-                "on_sale": row["on_sale"],
-                "image": row["image"]
-            }
-            products.append(product)
-
-        return  json.dumps(products)
+        return  json.dumps(Product.get_all(db))
     except Exception as e:
         print(e)
         return []
